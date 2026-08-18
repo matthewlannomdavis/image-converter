@@ -14,6 +14,7 @@ class ImageConverter:
 
     def set_deletion(self, delete_files: bool):
         self.delete_originals = delete_files
+        print(f"Files will be deleted: {self.delete_originals}")
     def get_deletion_state(self) -> bool:
         return self.delete_originals
 
@@ -43,7 +44,7 @@ class ImageConverter:
                 return False
 
 #conversion function
-    def convert_images(self):
+    def convert_images(self, on_message=None):
         if not self.test_path():
             return
 
@@ -55,6 +56,8 @@ class ImageConverter:
                 webp_files.append(file)
 
         if not webp_files:
+            if on_message:
+                on_message('No Webp Files found')
             print("No webp files found.")
             return
             
@@ -74,14 +77,19 @@ class ImageConverter:
                     image.save(png_file, "PNG")
                 self.converted += 1
                 print(f"Converted: {webp_file.name} -> {png_file.name}")
+                if on_message:
+                    on_message(f"Converted: {webp_file.name} -> {png_file.name}")
                 if png_file.exists() and self.delete_originals:
                     self.unlink_file(webp_file)
             except Exception as error:
                     self.failed += 1
+                    if on_message:
+                        on_message(f"Failed: {webp_file.name}: {error}")
                     print(f"Failed: {webp_file.name}: {error}")
 
-            print(f"\nFinished. Converted:{self.converted}, Failed:{self.failed}")        
-
+            print(f"\nFinished. Converted:{self.converted}, Failed:{self.failed}")
+            if on_message:
+                on_message(f"\nFinished. Converted:{self.converted}, Failed:{self.failed}")
 
 if __name__ == "__main__":
     folder_to_convert = input("Enter the folder path: ").strip().strip('"')

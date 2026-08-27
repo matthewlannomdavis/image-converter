@@ -17,6 +17,7 @@ class ConverterGui:
         self.del_switch = None
         self.del_bool = tk.BooleanVar()
         self.convert_bttn = None
+        self.output_frame = None
         
     def set_controller(self, ctrl):
         self.converter_controller = ctrl
@@ -28,6 +29,7 @@ class ConverterGui:
             message + '\n'
         )
         self.information_output.see(tk.END)
+        self.root.update_idletasks()#causes the application to halt and be none responsive on too many calls.
     def main_window_setup(self):
         ttk.Label(self.root, text='Directory to convert').grid(row=0, column=0, sticky="nw")
         #create widgets
@@ -37,11 +39,15 @@ class ConverterGui:
             text='Select',
             command=self.converter_controller.find_directory
         )
-        self.information_output = tk.Text(self.root, width='60', height='15')
+        self.output_frame = ttk.Frame(self.root)
+        self.information_output = tk.Text(self.output_frame, width='60', height='15')
         self.information_output_scroll = ttk.Scrollbar(
-            self.information_output,
+            self.output_frame,
             orient="vertical",
             command=self.information_output.yview
+        )
+        self.information_output.configure(
+            yscrollcommand=self.information_output_scroll.set
         )
         self.del_switch = ttk.Checkbutton(
             self.root, 
@@ -52,10 +58,12 @@ class ConverterGui:
         self.convert_bttn = tk.Button(
             self.root,
             text='Convert',
-            command=self.converter_controller.run_conversion
+            command=self.converter_controller.start_conversion
         )
 
         #arrange window.
+        self.information_output.grid(row=0, column=0, sticky="nsew")
+        self.information_output_scroll.grid(row=0, column=1, sticky="ns")
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(1, weight=1)
         self.root.rowconfigure(2, weight=2)
@@ -63,7 +71,7 @@ class ConverterGui:
         
         self.search_bttn.grid(row=0, column=0, sticky="ne", padx=2, pady=5)
         self.del_switch.grid(row=1, column=0, pady=5, sticky="w")
-        self.information_output.grid(row=2, column=0, padx=10, pady=10)
+        self.output_frame.grid(row=2, column=0, padx=10, pady=10)
         self.convert_bttn.grid(row=3, column=0, sticky="nesw", padx=15, pady=15)
 
     def get_root(self):

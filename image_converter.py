@@ -91,6 +91,54 @@ class ImageConverter:
             if on_message:
                 on_message(f"\nFinished. Converted:{self.converted}, Failed:{self.failed}")
 
+#function to convert a single image
+    def reset_converted(self):
+        self.converted = 0
+    def reset_failed(self):
+        self.failed
+    def get_webp_files(self, message):
+        if not self.test_path():
+            return
+        
+        files = self.dir_path.iterdir()
+        webp_files = []
+        
+        for file in files:
+            if file.is_file() and file.suffix.lower() == ".webp":
+                webp_files.append(file)
+        
+        if not webp_files:
+            if message:
+                message('No Webp Files found')
+            print("No webp files found.")
+            return
+        return webp_files
+    def convert_image(self, file_to_convert, message=None):
+        if not self.test_path():
+            return
+        png_file = file_to_convert.with_suffix(".png")
+        try:
+            with Image.open(file_to_convert) as image:
+                if image.mode in ("RGBA", "LA") or "transparency" in image.info:
+                    image = image.convert("RGBA")
+                else:
+                    image = image.convert("RGB")
+                
+                image.save(png_file, "PNG")
+                self.converted += 1
+                print(f"Converted: {file_to_convert.name} -> {png_file.name}")
+                if message:
+                    message(f"Converted: {file_to_convert.name} -> {png_file.name}")
+                if png_file.exists() and self.delete_originals:
+                    self.unlink_file(file_to_convert)
+        except Exception as error:
+            self.failed += 1
+            if message:
+                message(f"Failed: {file_to_convert.name}: {error}")
+            print(f"Failed: {file_to_convert.name}: {error}")
+
+
+
 if __name__ == "__main__":
     folder_to_convert = input("Enter the folder path: ").strip().strip('"')
     converter = ImageConverter()
